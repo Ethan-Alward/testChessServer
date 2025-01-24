@@ -110,10 +110,23 @@ func joinGame(userID, gameCode):
 
 func _on_peer_disconnected(leaving_peer_id : int) -> void:
 	# The disconnect signal fires before the client is removed from the connected
-	# clients in multiplayer.get_peers(), so we wait for a moment.
-	await get_tree().create_timer(1).timeout 
+	# clients in multiplayer.get_peers(), so we wiait for a moment.
+	#await get_tree().create_timer(1).timeout 
+	
+	for match in matches.values():
+
+		if match["white"] == leaving_peer_id:
+			# delete match and send opponent error message
+			rpc_id(match["black"], "oppDisconnected")
+			matches.erase(match)
+					
+		if match["black"] == leaving_peer_id:
+			rpc_id(match["white"], "oppDisconnected")
+			matches.erase(match)
+	
 	#remove_player(leaving_peer_id)
 
+	print(matches)
 #find opponent, tell them we lost connection with other player
 #make them go back to homescreen
 #remove game from matches 
@@ -148,7 +161,10 @@ func _on_peer_disconnected(leaving_peer_id : int) -> void:
 		#print("Player " + str(unDisconnectedPlayer) + " also disconnected.")
 	
 	
-
+	
+@rpc
+func oppDisconnected():
+	pass
 @rpc
 func isMyTurn(_x):
 	pass
