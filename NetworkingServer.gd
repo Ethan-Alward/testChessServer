@@ -61,6 +61,7 @@ func joinGame(userID, gameCode, username):
 				rpc_id(matches[gameCode]["black"], "connectToOpp", userID, username) #swap IDs
 				rpc_id(userID, "isMyTurn", true)
 				rpc_id(matches[gameCode]["black"], "isMyTurn", false)
+				rpc_id(userID, "startGame")
 					
 			else: 
 				if matches[gameCode]["black"] == -1:
@@ -70,9 +71,9 @@ func joinGame(userID, gameCode, username):
 					rpc_id(matches[gameCode]["white"], "connectToOpp", userID, username) #swap IDs
 					rpc_id(userID, "isMyTurn", false)
 					rpc_id(matches[gameCode]["white"], "isMyTurn", true)
-					
+					rpc_id(userID, "startGame")
 			
-			rpc_id(userID, "startGame")
+			
 
 		
 		#print(matches)
@@ -80,6 +81,7 @@ func joinGame(userID, gameCode, username):
 	else: 
 		#send error message
 		print("error game has not been created, check if you have the correct code")
+		rpc_id(userID, "invalidJoinGame")
 
 	
 @rpc("any_peer")
