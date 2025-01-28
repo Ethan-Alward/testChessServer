@@ -49,30 +49,33 @@ func createNewGame(userID, username):
 @rpc("any_peer")
 func joinGame(userID, gameCode, username):
 	if matches.has(gameCode): #if there game code is valid
-		print(matches[gameCode]["white"])
-		print(matches[gameCode])
-		if matches[gameCode]["white"] == -1: #if other user is black pieces make this one white pieces
-			matches[gameCode]["white"] = userID
-			matches[gameCode]["whiteName"] = username
-			rpc_id(userID, "connectToOpp", matches[gameCode]["black"], matches[gameCode]["blackName"]) #swap IDs
-			rpc_id(matches[gameCode]["black"], "connectToOpp", userID, username) #swap IDs
-			rpc_id(userID, "isMyTurn", true)
-			rpc_id(matches[gameCode]["black"], "isMyTurn", false)
+		if matches[gameCode]["white"] != -1 and matches[gameCode]["black"] != -1: 
+			
+			rpc_id(userID, "invalidJoinGame")
+			
+		else:
+			if matches[gameCode]["white"] == -1: #if other user is black pieces make this one white pieces
+				matches[gameCode]["white"] = userID
+				matches[gameCode]["whiteName"] = username
+				rpc_id(userID, "connectToOpp", matches[gameCode]["black"], matches[gameCode]["blackName"]) #swap IDs
+				rpc_id(matches[gameCode]["black"], "connectToOpp", userID, username) #swap IDs
+				rpc_id(userID, "isMyTurn", true)
+				rpc_id(matches[gameCode]["black"], "isMyTurn", false)
 					
-		else: 
-			if matches[gameCode]["black"] == -1:
-				matches[gameCode]["black"] = userID		
-				matches[gameCode]["blackName"] = username		
-				rpc_id(userID, "connectToOpp", matches[gameCode]["white"], matches[gameCode]["whiteName"]) #swap IDs
-				rpc_id(matches[gameCode]["white"], "connectToOpp", userID, username) #swap IDs
-				rpc_id(userID, "isMyTurn", false)
-				rpc_id(matches[gameCode]["white"], "isMyTurn", true)
-				
-		
-		rpc_id(userID, "startGame")
+			else: 
+				if matches[gameCode]["black"] == -1:
+					matches[gameCode]["black"] = userID		
+					matches[gameCode]["blackName"] = username		
+					rpc_id(userID, "connectToOpp", matches[gameCode]["white"], matches[gameCode]["whiteName"]) #swap IDs
+					rpc_id(matches[gameCode]["white"], "connectToOpp", userID, username) #swap IDs
+					rpc_id(userID, "isMyTurn", false)
+					rpc_id(matches[gameCode]["white"], "isMyTurn", true)
+					
+			
+			rpc_id(userID, "startGame")
 
 		
-		print(matches)
+		#print(matches)
 		
 	else: 
 		#send error message
@@ -104,9 +107,7 @@ func _on_peer_disconnected(leaving_peer_id : int) -> void:
 			if match["white"] != -1:
 				rpc_id(match["white"], "oppDisconnected")
 			matches.erase(match)
-				
-	
-	print(matches)
+
 	
 func _on_peer_connected(new_peer_id : int) -> void:
 	connected_peer_ids.append(new_peer_id)
@@ -148,6 +149,9 @@ func connectToOpp(_opponentId, _oppName):
 func sendOppMove(_oppID, _square, _piece):
 	pass
 	
+@rpc("any_peer")
+func invalidJoinGame():
+	pass
 
 	
 @rpc("any_peer")
