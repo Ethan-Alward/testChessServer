@@ -41,13 +41,14 @@ func createNewGame(userID, username):
 		matches[curGameCode] = {"white" : -1, "whiteName" : -1,  "black" : userID, "blackName" : username}
 		
 	rpc_id(userID, "startGame")
-
+	print(matches)
 
 #called from second user looking to join the game
 #sets up matches gameID dictionary
 #passes opponents ids to eachother
 @rpc("any_peer")
 func joinGame(userID, gameCode, username):
+	print(matches)
 	if matches.has(gameCode): #if there game code is valid
 		if matches[gameCode]["white"] != -1 and matches[gameCode]["black"] != -1: 
 			
@@ -76,13 +77,14 @@ func joinGame(userID, gameCode, username):
 			
 
 		
-		#print(matches)
+		
 		
 	else: 
 		#send error message
 		print("error game has not been created, check if you have the correct code")
 		rpc_id(userID, "invalidJoinGame")
 
+	print(matches)
 	
 @rpc("any_peer")
 func leftGame(myID, gameID):
