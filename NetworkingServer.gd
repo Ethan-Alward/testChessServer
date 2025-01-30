@@ -22,6 +22,8 @@ func _ready():
 @rpc("any_peer")
 func serverIsLegal(oppID, square, pieceInfo):
 	rpc_id(oppID, "sendOppMove", square, pieceInfo)
+	#maybe tell opp to send over global.piece_list 
+	#send global.piece_list to viewer
 	
 
 @rpc("any_peer")
@@ -47,48 +49,60 @@ func createNewGame(userID, username):
 #sets up matches gameID dictionary
 #passes opponents ids to eachother
 @rpc("any_peer")
-func joinGame(userID, gameCode, username):
+func joinGame(userID, gameCode, username, wantsToWatch):
 	print(matches)
-	if matches.has(gameCode): #if there game code is valid
-		if matches[gameCode]["white"] != -1 and matches[gameCode]["black"] != -1: 
-			
-			rpc_id(userID, "invalidJoinGame")
-			
-		else:
-			if matches[gameCode]["white"] == -1: #if other user is black pieces make this one white pieces
-				matches[gameCode]["white"] = userID
-				matches[gameCode]["whiteName"] = username
-				rpc_id(userID, "connectToOpp", matches[gameCode]["black"], matches[gameCode]["blackName"]) #swap IDs
-				rpc_id(matches[gameCode]["black"], "connectToOpp", userID, username) #swap IDs
-				rpc_id(userID, "isMyTurn", true)
-				rpc_id(matches[gameCode]["black"], "isMyTurn", false)
-				rpc_id(userID, "startGame")
-					
-			else: 
-				if matches[gameCode]["black"] == -1:
-					matches[gameCode]["black"] = userID		
-					matches[gameCode]["blackName"] = username		
-					rpc_id(userID, "connectToOpp", matches[gameCode]["white"], matches[gameCode]["whiteName"]) #swap IDs
-					rpc_id(matches[gameCode]["white"], "connectToOpp", userID, username) #swap IDs
-					rpc_id(userID, "isMyTurn", false)
-					rpc_id(matches[gameCode]["white"], "isMyTurn", true)
+	
+	if wantsToWatch == true: 
+		#add rest of functionality to it 
+		matches[gameCode]["viewers"] = [{"userID" : userID , "username" : username}] 
+	else:
+		
+		if matches.has(gameCode): #if there game code is valid
+			if matches[gameCode]["white"] != -1 and matches[gameCode]["black"] != -1: 
+				
+				rpc_id(userID, "invalidJoinGame", 0) #send zero if the game is being played
+				
+			else:
+				if matches[gameCode]["white"] == -1: #if other user is black pieces make this one white pieces
+					matches[gameCode]["white"] = userID
+					matches[gameCode]["whiteName"] = username
+					rpc_id(userID, "connectToOpp", matches[gameCode]["black"], matches[gameCode]["blackName"]) #swap IDs
+					rpc_id(matches[gameCode]["black"], "connectToOpp", userID, username) #swap IDs
+					rpc_id(userID, "isMyTurn", true)
+					rpc_id(matches[gameCode]["black"], "isMyTurn", false)
 					rpc_id(userID, "startGame")
+						
+				else: 
+					if matches[gameCode]["black"] == -1:
+						matches[gameCode]["black"] = userID		
+						matches[gameCode]["blackName"] = username		
+						rpc_id(userID, "connectToOpp", matches[gameCode]["white"], matches[gameCode]["whiteName"]) #swap IDs
+						rpc_id(matches[gameCode]["white"], "connectToOpp", userID, username) #swap IDs
+						rpc_id(userID, "isMyTurn", false)
+						rpc_id(matches[gameCode]["white"], "isMyTurn", true)
+						rpc_id(userID, "startGame")
+				
+				
+
 			
 			
+			
+		else: 
+			#send error message
+			print("error game has not been created, check if you have the correct code")
+			rpc_id(userID, "invalidJoinGame", 1) #send a 1 if the game is not found
 
-		
-		
-		
-	else: 
-		#send error message
-		print("error game has not been created, check if you have the correct code")
-		rpc_id(userID, "invalidJoinGame")
-
-	print(matches)
+		print(matches)
 	
 @rpc("any_peer")
 func leftGame(myID, gameID):
 	#leave game tell opp that this user left the game
+	print("ksdjbkjg")
+	
+	print(myID)
+	print( matches[gameID]["white"])
+	print( matches[gameID]["black"])
+	print( matches)
 	if matches[gameID]["white"] == myID:
 		if matches[gameID]["black"] != -1:
 			rpc_id(matches[gameID]["black"], "oppDisconnected") #change to a left game message
@@ -97,6 +111,7 @@ func leftGame(myID, gameID):
 		if matches[gameID]["white"] != -1:
 			rpc_id(matches[gameID]["white"], "oppDisconnected")
 		
+	
 	matches.erase(gameID)
 
 #delete opp from match and inform opponent they left
