@@ -8,7 +8,7 @@ var connected_peer_ids = []
 var matches = {}
 var numGames = 0;
 var curGame = 0;
-
+var curGameID
 
 func _ready():
 	get_tree().set_multiplayer(multiplayer_peer, ^"/root/main")
@@ -35,6 +35,10 @@ func createNewGame(userID, username):
 	
 	var curGameCode = 0
 	curGameCode = randomCodeGen()		
+	#
+	#if !matches.has(curGameCode):
+		#rpc_id(userID, "getCode", curGameCode)
+	#else: 
 	rpc_id(userID, "getCode", curGameCode)
 
 	if randomPieceColor() == 0: #make the player the white pieces
@@ -80,11 +84,7 @@ func joinGame(userID, gameCode, username, wantsToWatch):
 						rpc_id(matches[gameCode]["white"], "connectToOpp", userID, username) #swap IDs
 						rpc_id(userID, "isMyTurn", false)
 						rpc_id(matches[gameCode]["white"], "isMyTurn", true)
-						rpc_id(userID, "startGame")
-				
-				
-
-			
+						rpc_id(userID, "startGame")			
 			
 			
 		else: 
@@ -116,17 +116,28 @@ func leftGame(myID, gameID):
 
 #delete opp from match and inform opponent they left
 func _on_peer_disconnected(leaving_peer_id : int) -> void:
+	print("peer disconnected: ", leaving_peer_id)
 	for match in matches.values():
 		if match["white"] == leaving_peer_id:
 			if match["black"] != -1:
 				rpc_id(match["black"], "oppDisconnected")
-			matches.erase(match)
+				
+			#curGameID = matches.find_key(match)
+			print(curGameID)
+			print(matches)
+			matches.erase(matches.find_key(match))
+			print(matches)
 					
 		if match["black"] == leaving_peer_id:		
 			if match["white"] != -1:
 				rpc_id(match["white"], "oppDisconnected")
-			matches.erase(match)
-
+				
+			#var curGameID = matches.find_key(match)
+			print(curGameID)
+			print(matches)
+			matches.erase(matches.find_key(match))
+			print(matches)
+	connected_peer_ids.erase(leaving_peer_id)
 	
 func _on_peer_connected(new_peer_id : int) -> void:
 	connected_peer_ids.append(new_peer_id)
