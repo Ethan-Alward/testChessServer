@@ -122,22 +122,17 @@ func _on_peer_disconnected(leaving_peer_id : int) -> void:
 			if match["black"] != -1:
 				rpc_id(match["black"], "oppDisconnected")
 				
-			#curGameID = matches.find_key(match)
-			print(curGameID)
-			print(matches)
 			matches.erase(matches.find_key(match))
-			print(matches)
+
 					
 		if match["black"] == leaving_peer_id:		
 			if match["white"] != -1:
 				rpc_id(match["white"], "oppDisconnected")
 				
-			#var curGameID = matches.find_key(match)
-			print(curGameID)
-			print(matches)
 			matches.erase(matches.find_key(match))
-			print(matches)
+
 	connected_peer_ids.erase(leaving_peer_id)
+	print(matches)
 	
 func _on_peer_connected(new_peer_id : int) -> void:
 	connected_peer_ids.append(new_peer_id)

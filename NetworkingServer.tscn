@@ -4,5 +4,3 @@
 
 [node name="main" type="Node"]
 script = ExtResource("1_acvag")
-
-[node name="HTTPRequest" type="HTTPRequest" parent="."]
