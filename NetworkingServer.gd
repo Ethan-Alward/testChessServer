@@ -44,12 +44,18 @@ func createNewGame(userID, username):
 	else: #make the player the black pieces
 		matches[curGameCode] = {"white" : -1, "whiteName" : -1,  "black" : userID, "blackName" : username}
 		
-	rpc_id(userID, "startGame")
+	rpc_id(userID, "loadingScreen")
+	#rpc_id(userID, "startGame")
 	print(matches)
 
 #called from second user looking to join the game
 #sets up matches gameID dictionary
 #passes opponents ids to eachother
+
+@rpc("any_peer")
+func loadingScreen():
+	pass
+
 @rpc("any_peer")
 func joinGame(userID, gameCode, username, wantsToWatch):
 	print(matches)
@@ -65,7 +71,7 @@ func joinGame(userID, gameCode, username, wantsToWatch):
 			print("in join game3")
 			if matches[gameCode]["white"] != -1 and matches[gameCode]["black"] != -1: 
 				print("in join game4")
-				rpc_id(userID, "invalidJoinGame", 0) #send zero if the game is being played
+				rpc_id(userID, "invalidJoinGame", 1) #send 1 if the game is being played
 				
 			else:
 				if matches[gameCode]["white"] == -1: #if other user is black pieces make this one white pieces
@@ -77,6 +83,7 @@ func joinGame(userID, gameCode, username, wantsToWatch):
 					rpc_id(userID, "isMyTurn", true)
 					rpc_id(matches[gameCode]["black"], "isMyTurn", false)
 					rpc_id(userID, "startGame")
+					rpc_id(matches[gameCode]["black"], "startGame")
 						
 				else: 
 					if matches[gameCode]["black"] == -1:
@@ -87,13 +94,14 @@ func joinGame(userID, gameCode, username, wantsToWatch):
 						rpc_id(matches[gameCode]["white"], "connectToOpp", userID, username) #swap IDs
 						rpc_id(userID, "isMyTurn", false)
 						rpc_id(matches[gameCode]["white"], "isMyTurn", true)
-						rpc_id(userID, "startGame")			
+						rpc_id(userID, "startGame")		
+						rpc_id(matches[gameCode]["white"], "startGame")	
 			
 			
 		else: 
 			#send error message
 			print("error game has not been created, check if you have the correct code")
-			rpc_id(userID, "invalidJoinGame", 1) #send a 1 if the game is not found
+			rpc_id(userID, "invalidJoinGame", 0) #send a 0 if the game is not found
 
 		print(matches)
 		
@@ -163,10 +171,10 @@ func randomCodeGen():
 	for i in range(4):
 		var random_let = rng.randi_range(0, 8)
 		code += numbers[random_let]	
+		
 	var intCode = code.to_int()
-	print("HELLO")
-	var temp = typeof(intCode)
-	print("%s" %temp)
+	
+	print("code:%s" %intCode)
 	return intCode
 
 
