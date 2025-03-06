@@ -27,7 +27,7 @@ func serverIsLegal(oppID, square, pieceInfo):
 	
 
 @rpc("any_peer")
-func createNewGame(userID, username):
+func createNewGame(userID, username, time):
 	#add to matches data structure a new game and add this user to it 
 	print("making new game for %s" %userID)
 	print(userID)
@@ -40,9 +40,9 @@ func createNewGame(userID, username):
 	rpc_id(userID, "getCode", curGameCode)
 
 	if randomPieceColor() == 0: #make the player the white pieces
-		matches[curGameCode] = {"white" : userID, "whiteName" : username,  "black" : -1, "blackName" : -1}
+		matches[curGameCode] = {"white" : userID, "whiteName" : username,  "black" : -1, "blackName" : -1, "time": time}
 	else: #make the player the black pieces
-		matches[curGameCode] = {"white" : -1, "whiteName" : -1,  "black" : userID, "blackName" : username}
+		matches[curGameCode] = {"white" : -1, "whiteName" : -1,  "black" : userID, "blackName" : username, "time": time}
 		
 	rpc_id(userID, "loadingScreen")
 	#rpc_id(userID, "startGame")
@@ -59,8 +59,7 @@ func loadingScreen():
 @rpc("any_peer")
 func joinGame(userID, gameCode, username, wantsToWatch):
 	print(matches)
-	print("in join game")
-	
+	print("in join game")	
 	
 	if wantsToWatch == true: 
 		#add rest of functionality to it 
@@ -78,6 +77,8 @@ func joinGame(userID, gameCode, username, wantsToWatch):
 					print("in join game5")
 					matches[gameCode]["white"] = userID
 					matches[gameCode]["whiteName"] = username
+					
+					rpc_id(userID,"recieveTime", matches[gameCode]["time"])
 					rpc_id(userID, "connectToOpp", matches[gameCode]["black"], matches[gameCode]["blackName"]) #swap IDs
 					rpc_id(matches[gameCode]["black"], "connectToOpp", userID, username) #swap IDs
 					rpc_id(userID, "isMyTurn", true)
@@ -89,7 +90,9 @@ func joinGame(userID, gameCode, username, wantsToWatch):
 					if matches[gameCode]["black"] == -1:
 						print("in join game6")
 						matches[gameCode]["black"] = userID		
-						matches[gameCode]["blackName"] = username		
+						matches[gameCode]["blackName"] = username	
+						
+						rpc_id(userID,"recieveTime", matches[gameCode]["time"])	
 						rpc_id(userID, "connectToOpp", matches[gameCode]["white"], matches[gameCode]["whiteName"]) #swap IDs
 						rpc_id(matches[gameCode]["white"], "connectToOpp", userID, username) #swap IDs
 						rpc_id(userID, "isMyTurn", false)
@@ -165,14 +168,8 @@ func _on_peer_connected(new_peer_id : int) -> void:
 	connected_peer_ids.append(new_peer_id)
 	
 func randomCodeGen():	 
-	var numbers = "0123456789"
-	var rng = RandomNumberGenerator.new()
-	var code = ""
-	for i in range(4):
-		var random_let = rng.randi_range(0, 8)
-		code += numbers[random_let]	
-		
-	var intCode = code.to_int()
+	var rng = RandomNumberGenerator.new()		
+	var intCode = rng.randi_range(1000,9999)
 	
 	print("code:%s" %intCode)
 	return intCode
@@ -225,7 +222,8 @@ func receiveText(_text):
 func startGame():
 	pass
 	
-
-# testing
+@rpc("any_peer")
+func recieveTime(_time):
+	pass
 	
 	
