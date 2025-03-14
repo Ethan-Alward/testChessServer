@@ -22,12 +22,15 @@ func _ready():
 @rpc("any_peer")
 func serverIsLegal(oppID, square, pieceInfo):
 	rpc_id(oppID, "sendOppMove", square, pieceInfo)
-	#maybe tell opp to send over global.piece_list 
-	#send global.piece_list to viewer
+
+	
+@rpc("any_peer")
+func serverBoardMoveIsLegal(oppID, oldBoard, newBoard):
+	rpc_id(oppID, "sendOppBoardMove", oldBoard, newBoard)
 	
 
 @rpc("any_peer")
-func createNewGame(userID, username, time):
+func createNewGame(userID, username, time, gameType):
 	#add to matches data structure a new game and add this user to it 
 	print("making new game for %s" %userID)
 	print(userID)
@@ -40,9 +43,9 @@ func createNewGame(userID, username, time):
 	rpc_id(userID, "getCode", curGameCode)
 
 	if randomPieceColor() == 0: #make the player the white pieces
-		matches[curGameCode] = {"white" : userID, "whiteName" : username,  "black" : -1, "blackName" : -1, "time": time}
+		matches[curGameCode] = {"white" : userID, "whiteName" : username,  "black" : -1, "blackName" : -1, "time": time, "gameType" : gameType}
 	else: #make the player the black pieces
-		matches[curGameCode] = {"white" : -1, "whiteName" : -1,  "black" : userID, "blackName" : username, "time": time}
+		matches[curGameCode] = {"white" : -1, "whiteName" : -1,  "black" : userID, "blackName" : username, "time": time, "gameType" : gameType}
 		
 	rpc_id(userID, "loadingScreen")
 	#rpc_id(userID, "startGame")
@@ -78,13 +81,14 @@ func joinGame(userID, gameCode, username, wantsToWatch):
 					matches[gameCode]["white"] = userID
 					matches[gameCode]["whiteName"] = username
 					
-					rpc_id(userID,"recieveTime", matches[gameCode]["time"])
 					rpc_id(userID, "connectToOpp", matches[gameCode]["black"], matches[gameCode]["blackName"]) #swap IDs
 					rpc_id(matches[gameCode]["black"], "connectToOpp", userID, username) #swap IDs
+					rpc_id(userID, "startGame", matches[gameCode]["gameType"])
+					rpc_id(matches[gameCode]["black"], "startGame",  matches[gameCode]["gameType"])
+					rpc_id(userID,"recieveTime", matches[gameCode]["time"])
 					rpc_id(userID, "isMyTurn", true)
 					rpc_id(matches[gameCode]["black"], "isMyTurn", false)
-					rpc_id(userID, "startGame")
-					rpc_id(matches[gameCode]["black"], "startGame")
+
 						
 				else: 
 					if matches[gameCode]["black"] == -1:
@@ -92,13 +96,14 @@ func joinGame(userID, gameCode, username, wantsToWatch):
 						matches[gameCode]["black"] = userID		
 						matches[gameCode]["blackName"] = username	
 						
-						rpc_id(userID,"recieveTime", matches[gameCode]["time"])	
 						rpc_id(userID, "connectToOpp", matches[gameCode]["white"], matches[gameCode]["whiteName"]) #swap IDs
 						rpc_id(matches[gameCode]["white"], "connectToOpp", userID, username) #swap IDs
+						rpc_id(userID, "startGame",  matches[gameCode]["gameType"])		
+						rpc_id(matches[gameCode]["white"], "startGame",  matches[gameCode]["gameType"])	
+						rpc_id(userID,"recieveTime", matches[gameCode]["time"])							
 						rpc_id(userID, "isMyTurn", false)
 						rpc_id(matches[gameCode]["white"], "isMyTurn", true)
-						rpc_id(userID, "startGame")		
-						rpc_id(matches[gameCode]["white"], "startGame")	
+
 			
 			
 		else: 
@@ -110,6 +115,9 @@ func joinGame(userID, gameCode, username, wantsToWatch):
 		
 @rpc("any_peer")
 func sendOppTheyWon(myID, gameID):
+	print("in send opp they won")
+	print(myID)
+	print(gameID)
 	if matches[gameID]["white"] == myID:
 		if matches[gameID]["black"] != -1:
 			rpc_id(matches[gameID]["black"], "sendOppTheyWon") #change to a left game message
@@ -203,6 +211,10 @@ func sendOppMove(_oppID, _square, _piece):
 	pass
 	
 @rpc("any_peer")
+func sendOppBoardMove(oldBoard, newBoard):
+	pass
+	
+@rpc("any_peer")
 func invalidJoinGame():
 	pass
 
@@ -219,7 +231,7 @@ func receiveText(_text):
 
 	
 @rpc("any_peer")
-func startGame():
+func startGame(_gameType):
 	pass
 	
 @rpc("any_peer")
