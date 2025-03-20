@@ -40,7 +40,7 @@ func createNewGame(userID, username, time, gameType):
 	rpc_id(userID, "loadingScreen")
 
 @rpc("any_peer")
-func joinGame(userID, gameCode, username, wantsToWatch):
+func joinGame(userID, gameCode, username, _wantsToWatch):
 	if matches.has(gameCode): #if there game code is valid
 		if matches[gameCode]["white"] != -1 and matches[gameCode]["black"] != -1: 
 			rpc_id(userID, "invalidJoinGame", 1) #send 1 if the game is being played
@@ -51,7 +51,7 @@ func joinGame(userID, gameCode, username, wantsToWatch):
 				matches[gameCode]["whiteName"] = username
 				
 				print("-----------------------------------------------")
-				print(str(username) + " is now playing against " + str(matches[gameCode]["blackName"]) + "in a " + str(matches[gameCode]["time"]) + " minute " + str(matches[gameCode]["gameType"]) + " game")
+				print(str(username) + " is now playing against " + str(matches[gameCode]["blackName"]) + " in a " + str(matches[gameCode]["gameType"]) + " game")
 				print("Active Games: %s" %str(matches.size()))
 				print("Connected Players: %s" %str(connected_peer_ids.size()))
 				print("-----------------------------------------------")
@@ -71,7 +71,7 @@ func joinGame(userID, gameCode, username, wantsToWatch):
 					matches[gameCode]["blackName"] = username
 					
 					print("-----------------------------------------------")
-					print(str(username) + " is now playing against " + str(matches[gameCode]["whiteName"]) + "in a " + str(matches[gameCode]["time"]) + " minute " + str(matches[gameCode]["gameType"]) + " game")
+					print(str(username) + " is now playing against " + str(matches[gameCode]["whiteName"]) + " in a " + str(matches[gameCode]["gameType"]) + " game")
 					print("Active Games: %s" %str(matches.size()))
 					print("Connected Players: %s" %str(connected_peer_ids.size()))
 					print("-----------------------------------------------")
@@ -114,13 +114,13 @@ func sendOppTheyWon(myID, gameID):
 		if matches[gameID]["white"] == myID:
 			if matches[gameID]["black"] != -1:
 				print("-----------------------------------------------")
-				print(str(matches[gameID]["blackName"]) + " just beat " + str(matches[gameID]["whiteName"]) + "in a " + str(matches[gameID]["time"]) + " minute " + str(matches[gameID]["gameType"]) + " game")
+				print(str(matches[gameID]["blackName"]) + " just beat " + str(matches[gameID]["whiteName"]) + " in a " + str(matches[gameID]["gameType"]) + " game")
 				rpc_id(matches[gameID]["black"], "sendOppTheyWon") #change to a left game message
 
 		if matches[gameID]["black"] == myID:
 			if matches[gameID]["white"] != -1:
 				print("-----------------------------------------------")
-				print(str(matches[gameID]["whiteName"]) + " just beat " + str(matches[gameID]["blackName"]) + "in a " + str(matches[gameID]["time"]) + " minute " + str(matches[gameID]["gameType"]) + " game")
+				print(str(matches[gameID]["whiteName"]) + " just beat " + str(matches[gameID]["blackName"]) + " in a " + str(matches[gameID]["gameType"]) + " game")
 
 				rpc_id(matches[gameID]["white"], "sendOppTheyWon")	
 		
@@ -203,7 +203,7 @@ func connectToOpp(_opponentId, _oppName):
 func sendOppMove(_oppID, _square, _piece):
 	pass
 @rpc("any_peer")
-func sendOppBoardMove(oldBoard, newBoard):
+func sendOppBoardMove(_oldBoard, _newBoard):
 	pass
 @rpc("any_peer")
 func invalidJoinGame():
