@@ -1,9 +1,10 @@
 extends Node
 var multiplayer_peer = ENetMultiplayerPeer.new()
+#var multiplayer_peer = WebSocketMultiplayerPeer.new()
+
 
 
 const PORT = 9010
-const maxPlayers = 100
 var connected_peer_ids = []
 var matches = {}
 var numGames = 0;
@@ -12,7 +13,7 @@ var curGameID
 
 func _ready():
 	get_tree().set_multiplayer(multiplayer_peer, ^"/root/main")
-	multiplayer_peer.create_server(PORT, maxPlayers)
+	multiplayer_peer.create_server(PORT)
 	multiplayer.multiplayer_peer = multiplayer_peer
 	multiplayer_peer.peer_connected.connect(_on_peer_connected)
 	multiplayer_peer.peer_disconnected.connect(_on_peer_disconnected)
@@ -107,6 +108,28 @@ func sendText(text, myID, gameID):
 	if matches[gameID]["black"] == myID:
 		if matches[gameID]["white"] != -1:
 			rpc_id(matches[gameID]["white"], "receiveText", text)
+
+@rpc("any_peer")
+func sendOppStalemate(myID, gameID):
+	if matches.has(gameID): 
+		if matches[gameID]["white"] == myID:
+			if matches[gameID]["black"] != -1:
+				print("-----------------------------------------------")
+				print(str(matches[gameID]["blackName"]) + " just stalemated " + str(matches[gameID]["whiteName"]) + " in a " + str(matches[gameID]["gameType"]) + " game")
+				rpc_id(matches[gameID]["black"], "sendOppStalemate") #change to a left game message
+
+		if matches[gameID]["black"] == myID:
+			if matches[gameID]["white"] != -1:
+				print("-----------------------------------------------")
+				print(str(matches[gameID]["whiteName"]) + " just stalemated " + str(matches[gameID]["blackName"]) + " in a " + str(matches[gameID]["gameType"]) + " game")
+
+				rpc_id(matches[gameID]["white"], "sendOppStalemate")	
+		
+		matches.erase(gameID)
+		print("Active Games: %s" %str(matches.size()))
+		print("Connected Players: %s" %str(connected_peer_ids.size()))
+		print("-----------------------------------------------")
+		
 
 @rpc("any_peer")
 func sendOppTheyWon(myID, gameID):
